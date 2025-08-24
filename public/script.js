@@ -8,13 +8,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const addItemDialog = document.getElementById('add-item-dialog');
     const closeDialogBtn = document.getElementById('close-dialog-btn');
     const addItemForm = document.getElementById('add-item-form');
-    const generateRecipeBtn = document.getElementById('generate-recipe-btn');
-    const recipeOutput = document.getElementById('recipe-output');
     const quickLookBar = document.getElementById('quick-look-bar');
     
-    const apiUrl = '/api/groceries';
+    const generateAutoRecipeBtn = document.getElementById('generate-auto-recipe-btn');
+    const generateSelectedRecipeBtn = document.getElementById('generate-selected-recipe-btn');
+    const ingredientSelectionList = document.getElementById('ingredient-selection-list');
+    const recipeOutput = document.getElementById('recipe-output');
+    const loadingSpinner = document.getElementById('loading-spinner');
 
+    const apiUrl = '/api/groceries';
+    const recipeApiUrl = '/api/recipes';
+    
     let items = [];
+
+    const showLoading = () => { loadingSpinner.classList.add('active'); };
+    const hideLoading = () => { loadingSpinner.classList.remove('active'); };
 
     const daysRemaining = (expiryTimestamp) => {
         const today = new Date();
@@ -26,6 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const renderGroceryList = (itemsToRender) => {
         items = itemsToRender;
         groceryListContainer.innerHTML = '';
+        ingredientSelectionList.innerHTML = ''; // Clear ingredient list on refresh
         if (items.length === 0) {
             groceryListContainer.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">Your pantry is empty. Add some groceries!</p>';
             return;
@@ -61,6 +70,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 <button class="delete-btn" data-id="${item.id}">&times;</button>
             `;
             groceryListContainer.appendChild(card);
+            
+            const checkboxLabel = document.createElement('label');
+            checkboxLabel.innerHTML = `
+                <input type="checkbox" name="ingredient" value="${item.name}">
+                ${item.name}
+            `;
+            ingredientSelectionList.appendChild(checkboxLabel);
         });
 
         if (nearingExpiryCount > 0) {
@@ -90,90 +106,100 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
     
-    const getExpiryEstimate = async (itemName) => {
-        return 7; // Placeholder
-    };
-    
+    // AI Functionality
     const generateRecipe = async (ingredients) => {
-        return `Placeholder Recipe for: ${ingredients.join(', ')}
-            Title: Zesty Expiring-Item Salad
-            Instructions:
-            1. Combine all ingredients in a bowl.
-            2. Add a Zesty dressing of your choice.
-            3. Enjoy before it's too late!
-        `;
+        showLoading();
+        recipeOutput.innerHTML = '<p style="text-align:center;">Generating recipe...</p>';
+        try {
+            const response = await fetch(`${recipeApiUrl}?ingredients=${encodeURIComponent(ingredients.join(','))}`);
+            if (!response.ok) throw new Error('Failed to generate recipe');
+            const data = await response.json();
+            recipeOutput.innerHTML = `<pre>${data.recipe}</pre>`;
+        } catch (error) {
+            console.error('Error generating recipe:', error);
+            recipeOutput.innerHTML = `<p style="text-align:center; color: var(--red-alert);">Sorry, I couldn't generate a recipe. Please try again!</p>`;
+        } finally {
+            hideLoading();
+        }
     };
 
+    // Event Listeners
     addItemForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const name = document.getElementById('item-name').value;
         const quantity = document.getElementById('item-quantity').value;
         
-        const shelfLife = await getExpiryEstimate(name);
-        const estimatedExpiryDate = Date.now() + (shelfLife * 24 * 60 * 60 * 1000);
-    
         try {
+            showLoading();
             const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, quantity: parseInt(quantity), estimatedExpiryDate })
+                body: JSON.stringify({ name, quantity: parseInt(quantity) })
             });
             if (!response.ok) throw new Error('Failed to add item');
             document.getElementById('item-name').value = '';
             document.getElementById('item-quantity').value = '1';
             addItemDialog.classList.remove('active');
-            fetchGroceries();
+            await fetchGroceries();
         } catch (error) {
             console.error('Error adding item:', error);
+        } finally {
+            hideLoading();
         }
     });
     
     const deleteItem = async (id) => {
         try {
-            const response = await fetch(`${apiUrl}/${id}`, {
-                method: 'DELETE'
-            });
-            if (!response.ok) throw new Error('Failed to delete item');
+            await fetch(`${apiUrl}/${id}`, { method: 'DELETE' });
             fetchGroceries();
         } catch (error) {
             console.error('Error deleting item:', error);
         }
     };
 
-    generateRecipeBtn.addEventListener('click', async () => {
+    generateAutoRecipeBtn.addEventListener('click', () => {
         const expiringItems = items.filter(item => {
             const days = daysRemaining(item.estimatedExpiryDate);
             return days <= 7 && days >= 0;
         });
     
         if (expiringItems.length === 0) {
-            recipeOutput.innerHTML = '<p style="text-align:center;">No items are nearing expiry. Add some groceries!</p>';
+            recipeOutput.innerHTML = '<p style="text-align:center; color: var(--text-secondary);">No items are nearing expiry. Add some groceries!</p>';
             return;
         }
     
         const ingredients = expiringItems.map(item => item.name);
-        const recipeText = await generateRecipe(ingredients);
-        recipeOutput.innerHTML = `<pre>${recipeText}</pre>`;
-    });
-    
-    // UI interactions
-    addItemFab.addEventListener('click', () => {
-        addItemDialog.classList.add('active');
-    });
-    
-    closeDialogBtn.addEventListener('click', () => {
-        addItemDialog.classList.remove('active');
+        generateRecipe(ingredients);
     });
 
-    document.querySelectorAll('.tab-button').forEach(button => {
+    generateSelectedRecipeBtn.addEventListener('click', () => {
+        const selectedCheckboxes = document.querySelectorAll('#ingredient-selection-list input[type="checkbox"]:checked');
+        const selectedIngredients = Array.from(selectedCheckboxes).map(cb => cb.value);
+
+        if (selectedIngredients.length === 0) {
+            recipeOutput.innerHTML = '<p style="text-align:center; color: var(--text-secondary);">Please select at least one ingredient.</p>';
+            return;
+        }
+        generateRecipe(selectedIngredients);
+    });
+
+    // UI interactions
+    const tabButtons = document.querySelectorAll('.tab-button');
+    tabButtons.forEach(button => {
         button.addEventListener('click', (e) => {
             const panelId = e.target.dataset.panel;
-            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            tabButtons.forEach(btn => btn.classList.remove('active'));
             e.target.classList.add('active');
             document.querySelectorAll('.panel').forEach(panel => panel.classList.remove('active'));
             document.getElementById(panelId).classList.add('active');
+            if (panelId === 'recipes') {
+                recipeOutput.innerHTML = '<p style="text-align:center;">Click a button to get a recipe!</p>';
+            }
         });
     });
+
+    addItemFab.addEventListener('click', () => { addItemDialog.classList.add('active'); });
+    closeDialogBtn.addEventListener('click', () => { addItemDialog.classList.remove('active'); });
 
     fetchGroceries();
 });

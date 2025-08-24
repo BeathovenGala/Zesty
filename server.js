@@ -1,7 +1,8 @@
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
-const fetch = require('node-fetch'); // Required for Node.js versions < 18, better to include explicitly for compatibility
+// Correct way to import fetch for compatibility
+const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -65,7 +66,7 @@ const getExpiryEstimate = async (itemName) => {
             }
         };
 
-        const apiKey = "";
+        const apiKey = "AIzaSyDVF0vRizuKYVQJQZyK8JdSS8wXmZJOPCo";
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
         const response = await exponentialBackoffFetch(apiUrl, {
             method: 'POST',
@@ -88,7 +89,7 @@ const generateRecipe = async (ingredients) => {
         const payload = {
             contents: [{ role: "user", parts: [{ text: prompt }] }]
         };
-        const apiKey = "";
+        const apiKey = "AIzaSyDVF0vRizuKYVQJQZyK8JdSS8wXmZJOPCo";
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
         const response = await exponentialBackoffFetch(apiUrl, {
             method: 'POST',
@@ -105,6 +106,12 @@ const generateRecipe = async (ingredients) => {
 // API endpoint to add a new grocery item
 app.post('/api/groceries', async (req, res) => {
     const { name, quantity } = req.body;
+    console.log('Received item:', { name, quantity });
+    
+    if (!name || !quantity) {
+        return res.status(400).json({ error: 'Name and quantity are required.' });
+    }
+
     const purchaseDate = Date.now();
     const shelfLife = await getExpiryEstimate(name);
     
@@ -117,6 +124,7 @@ app.post('/api/groceries', async (req, res) => {
     const stmt = db.prepare("INSERT INTO groceries (name, quantity, purchaseDate, estimatedExpiryDate) VALUES (?, ?, ?, ?)");
     stmt.run(name, quantity, purchaseDate, estimatedExpiryDate, function(err) {
         if (err) {
+            console.error('Database error on insert:', err);
             return res.status(500).json({ error: err.message });
         }
         res.status(201).json({ message: 'Item added successfully', id: this.lastID });
@@ -128,6 +136,7 @@ app.post('/api/groceries', async (req, res) => {
 app.get('/api/groceries', (req, res) => {
     db.all("SELECT * FROM groceries", [], (err, rows) => {
         if (err) {
+            console.error('Database error on select:', err);
             return res.status(500).json({ error: err.message });
         }
         res.json(rows);
@@ -139,6 +148,7 @@ app.delete('/api/groceries/:id', (req, res) => {
     const id = req.params.id;
     db.run(`DELETE FROM groceries WHERE id = ?`, id, function(err) {
         if (err) {
+            console.error('Database error on delete:', err);
             return res.status(500).json({ error: err.message });
         }
         res.json({ message: `Item with ID ${id} deleted.` });
@@ -147,9 +157,6 @@ app.delete('/api/groceries/:id', (req, res) => {
 
 // New API endpoint to get a recipe
 app.get('/api/recipes', async (req, res) => {
-    // This is a placeholder for filtering expiring items from the database.
-    // In the final version, you would query the database for items nearing expiry.
-    // For now, we'll use a sample list.
     const ingredients = req.query.ingredients ? req.query.ingredients.split(',') : [];
 
     if (ingredients.length === 0) {

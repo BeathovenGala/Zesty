@@ -28,9 +28,23 @@
             <div id="recipes" class="panel">
                 <div class="recipe-panel">
                     <h2>Recipe Ideas</h2>
-                    <button id="generate-recipe-btn">Generate Recipe</button>
+                    <div class="recipe-options">
+                        <div class="auto-generate">
+                            <h3>Quick Recipe</h3>
+                            <p>Generate a recipe using items that are about to expire.</p>
+                            <button id="generate-auto-recipe-btn">Generate Auto Recipe</button>
+                        </div>
+                        <div class="select-ingredients">
+                            <h3>Select Ingredients</h3>
+                            <p>Choose specific ingredients to create a recipe.</p>
+                            <div id="ingredient-selection-list">
+                                <!-- Ingredient checkboxes will be inserted here -->
+                            </div>
+                            <button id="generate-selected-recipe-btn">Generate from Selection</button>
+                        </div>
+                    </div>
                     <div id="recipe-output" class="recipe-output">
-                        <p style="text-align:center;">Click "Generate" to get a recipe!</p>
+                        <p style="text-align:center;">Click a button to get a recipe!</p>
                     </div>
                 </div>
             </div>
@@ -52,6 +66,13 @@
                 <button type="submit" id="submit-item-btn">Add to Pantry</button>
             </form>
         </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loading-spinner" class="loading-spinner">
+        <div class="spinner-dot"></div>
+        <div class="spinner-dot"></div>
+        <div class="spinner-dot"></div>
     </div>
     
     <script src="script.js"></script>
