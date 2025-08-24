@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zesty</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Zesty</h1>
+            <nav>
+                <button id="dashboard-tab" class="active">Dashboard</button>
+                <button id="recipes-tab">Recipes</button>
+            </nav>
+        </header>
+
+        <main id="main-content">
+            <section id="dashboard" class="active-section">
+                <h2>Your Groceries</h2>
+                <div id="grocery-list" class="grocery-grid">
+                    <!-- Grocery items will be dynamically added here -->
+                </div>
+                <div class="add-item-form-container">
+                    <form id="add-item-form">
+                        <input type="text" id="item-name" placeholder="Item Name" required>
+                        <input type="number" id="item-quantity" placeholder="Quantity" value="1" min="1" required>
+                        <button type="submit">Add Item</button>
+                    </form>
+                </div>
+            </section>
+
+            <section id="recipes" class="hidden-section">
+                <h2>Recipe Generator</h2>
+                <button id="generate-recipe-btn">Generate Recipe (Expiring Items)</button>
+                <div id="recipe-output" class="recipe-card">
+                    <p>Click "Generate" to get a recipe!</p>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

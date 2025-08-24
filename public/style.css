@@ -1,0 +1,181 @@
+:root {
+    --primary-color: #4a90e2;
+    --secondary-color: #f7a31b;
+    --background-color: #f4f4f9;
+    --card-bg-color: #ffffff;
+    --text-color: #333;
+    --border-color: #ddd;
+    --red-alert: #e63946;
+    --yellow-alert: #fca311;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: var(--background-color);
+    color: var(--text-color);
+}
+
+.container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: var(--card-bg-color);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+header {
+    text-align: center;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 1rem;
+    margin-bottom: 2rem;
+}
+
+h1 {
+    color: var(--primary-color);
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+
+nav button {
+    background: none;
+    border: none;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    font-size: 1rem;
+    color: var(--text-color);
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+}
+
+nav button.active {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    color: var(--primary-color);
+}
+
+/* Sections */
+.hidden-section {
+    display: none;
+}
+.active-section {
+    display: block;
+}
+
+/* Grocery List and Cards */
+.grocery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.grocery-card {
+    background-color: var(--card-bg-color);
+    border: 1px solid var(--border-color);
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.grocery-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.grocery-card .name {
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+.grocery-card .info {
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 0.2rem;
+}
+
+.grocery-card .delete-btn {
+    align-self: flex-end;
+    background: none;
+    border: none;
+    color: #888;
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: color 0.2s ease;
+}
+.grocery-card .delete-btn:hover {
+    color: var(--red-alert);
+}
+
+/* Card Status Colors */
+.card-near-expiry {
+    border-color: var(--yellow-alert);
+}
+.card-expired {
+    border-color: var(--red-alert);
+}
+
+/* Add Item Form */
+.add-item-form-container {
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+#add-item-form {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+#add-item-form input {
+    flex: 1;
+    min-width: 150px;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+}
+#add-item-form button {
+    padding: 0.75rem 1.5rem;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+#add-item-form button:hover {
+    background-color: #3876c9;
+}
+
+/* Recipe Section */
+#generate-recipe-btn {
+    padding: 0.75rem 1.5rem;
+    background-color: var(--secondary-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    margin-bottom: 1.5rem;
+}
+#generate-recipe-btn:hover {
+    background-color: #d88e0e;
+}
+.recipe-card {
+    border: 1px solid var(--border-color);
+    padding: 1.5rem;
+    border-radius: 8px;
+    background-color: #fff;
+    min-height: 200px;
+}
+pre {
+    white-space: pre-wrap;
+}
